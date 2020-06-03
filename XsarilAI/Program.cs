@@ -6,7 +6,9 @@ using System.Threading.Tasks;
 using Discord.Audio;
 using Discord.WebSocket;
 using XLogger;
+using XLogger.Configuration;
 using XLogger.Formatters;
+using XsarilAI.Handlers;
 
 namespace XsarilAI {
 	class Program {
@@ -20,7 +22,20 @@ namespace XsarilAI {
 
 		private DiscordSocketClient client;
 
-		static void Main(string[] args) => (new Program()).RunAsync().GetAwaiter().GetResult();
+		static void Main(string[] args) {
+			LoggerConfiguration.ConfigureLoggerConfiguration(builder => 
+				builder.UseConsoleLogging()
+					.UseLogLevel(LogLevel.Debug)
+			);
+			DiscordBot bot = new DiscordBot();
+			bot.Handlers.Add(new LoggerHandler());
+			bot.Handlers.Add(new MessageReceiveHandler(bot));
+			bot.Handlers.Add(new EmojiAddHandler(bot, "welcome", "l_hand", "CS:GOсть"));
+			bot.Handlers.Add(new SubscribeCommandHandler(bot, "!sub мемы", "voice-flood", "memaseks"));
+			bot.Handlers.Add(new UnsubscribeCommandHandler(bot, "!unsub мемы", "voice-flood", "memaseks"));
+			bot.Handlers.Add(new PlayMusicHandler(bot, "!play"));
+			bot.Run().GetAwaiter().GetResult();
+		}
 
 		public async Task MainAsync() {
 			client = new DiscordSocketClient();
@@ -29,7 +44,6 @@ namespace XsarilAI {
 			await client.LoginAsync(Discord.TokenType.Bot,
 				"NjkzMTI3NDIwMTE0NjMyNzU0.Xn-LMg.7aau-CiWgjjOYffi9kmuPbmfMKY");
 			await client.StartAsync();
-
 			// Block this task until the program is closed.
 			await Task.Delay(-1);
 		}
