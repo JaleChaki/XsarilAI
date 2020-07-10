@@ -1,63 +1,116 @@
-﻿using Discord.WebSocket;
-using System;
+﻿using Discord;
+using Discord.WebSocket;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using XLogger;
-using XsarilAI.Behaviors;
+using XsarilAI.Configuration;
+using XsarilAI.Events;
+using XsarilAI.Guilds;
 using XsarilAI.Handlers;
+using XsarilAI.Services;
 
 namespace XsarilAI {
-	public class DiscordBot : IBehaviorContainer {
-
-		private readonly ICollection<IBehavior> CachedBehaviors;
-
-		public ICollection<IHandler> Handlers { get; private set; }
+	public class DiscordBot : IExecutionEnvironment {
 
 		private readonly DiscordSocketClient Client;
 
-		private readonly string Token;
+#pragma warning disable IDE0044
+		private object Sync = new object();
+#pragma warning restore IDE0044
 
-		public void Add(IBehavior behavior) {
-			lock (CachedBehaviors) {
-				CachedBehaviors.Add(behavior);
-			}
-		}
+		private IDictionary<ulong, GuildSettings> Guilds;
 
-		public DiscordBot() {
-			CachedBehaviors = new List<IBehavior>();
-			Handlers = new List<IHandler>();
+		private ICollection<object> Services;
+
+		private ICollection<IEvent> CachedEvents;
+
+		private readonly IConfiguration Configuration;
+
+		public DiscordBot(IConfiguration configuration) {
+			this.Configuration = configuration;
 			Client = new DiscordSocketClient();
-			Token = "NjkzMTI3NDIwMTE0NjMyNzU0.Xn-LMg.7aau-CiWgjjOYffi9kmuPbmfMKY";
+			GuildSettings settings = new GuildSettings() { GuildId = 350208864525746186, CommandPrefix = '.' };
+			settings.Handlers.Add(new PlayMusicCommandHandler());
+			settings.Handlers.Add(new StopMusicCommandHandler());
+			Guilds = new Dictionary<ulong, GuildSettings>();
+			Guilds.Add(350208864525746186, settings);
+			Services = new List<object> {
+				new DefaultMusicPlayer(configuration),
+				new DefaultMusicSearchService(configuration)
+			};
+			CachedEvents = new List<IEvent>();
 		}
 
 		public async Task Run() {
-			await Client.LoginAsync(Discord.TokenType.Bot, Token);
+			await Client.LoginAsync(TokenType.Bot, Configuration["bot.token"]);
 			await Client.StartAsync();
-			foreach (IHandler handler in Handlers) {
-				handler.SubscribeActions(Client);
-			}
-
+			Client.MessageReceived += OnMessageReceive;
+			Client.ReactionAdded += OnReactionAdd;
+			int loopTime = int.Parse(Configuration["bot.looptime"]);
 			while (true) {
-				RunOnce();
-				Thread.Sleep(1500);
+				HandleEvents();
+				Thread.Sleep(loopTime);
 			}
-			//await Task.Delay(-1);
 		}
 
-		public void RunOnce() {
-			lock (CachedBehaviors) {
-				foreach (IBehavior behavior in CachedBehaviors) {
-					try {
-						behavior.Apply(Client);
+		private void HandleEvents() {
+			lock (Sync) {
+				foreach (IEvent e in CachedEvents) {
+					GuildSettings settings = GetGuildSettings(e.GuildId);
+					if (settings is null) {
+						continue;
 					}
-					catch (Exception e) {
-						Logger.Error(e);
+					foreach (IEventHandler handler in settings.Handlers) {
+						if (handler.CanHandle(e)) {
+							handler.Handle(this, e);
+						}
 					}
 				}
-				CachedBehaviors.Clear();
+				CachedEvents.Clear();
 			}
 		}
 
+		private Task OnReactionAdd(Cacheable<IUserMessage, ulong> cachedMessage, ISocketMessageChannel messageChannel, SocketReaction reaction) {
+			if (!(messageChannel is IGuildChannel)) {
+				return Task.CompletedTask;
+			}
+			lock (Sync) {
+				CachedEvents.Add(new EmojiAddedEvent(reaction));
+			}
+			return Task.CompletedTask;
+		}
+
+		private Task OnMessageReceive(SocketMessage message) {
+			Logger.Info(message);
+			if (!(message.Channel is IGuildChannel)) {
+				return Task.CompletedTask;
+			}
+			lock (Sync) {
+				CachedEvents.Add(new MessageReceivedEvent(message));
+			}
+			return Task.CompletedTask;
+		}
+
+		public void SendErrorMessage(string messageText, ulong guildId) {
+			
+		}
+
+		public GuildSettings GetGuildSettings(ulong guildId) {
+			return Guilds.ContainsKey(guildId) ? Guilds[guildId] : null;
+		}
+
+		public void SaveGuildSettings(GuildSettings info) {
+			
+		}
+
+		public T GetService<T>() {
+			foreach (object service in Services) {
+				if (service is T castResult) {
+					return castResult;
+				}
+			}
+			return default;
+		}
 	}
 }

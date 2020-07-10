@@ -13,4 +13,10 @@
     <ProjectReference Include="..\XLogger\Src\XLogger\XLogger.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="AppConfig.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
