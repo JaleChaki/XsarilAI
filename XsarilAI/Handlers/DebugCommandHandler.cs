@@ -4,7 +4,7 @@ using XsarilAI.Events;
 namespace XsarilAI.Handlers {
 	public class DebugCommandHandler : CommandMessageHandler {
 
-		public DebugCommandHandler() : base("debug") {
+		public DebugCommandHandler() : base("debug-info") {
 
 		}
 

@@ -33,6 +33,8 @@ namespace XsarilAI {
 			GuildSettings settings = new GuildSettings() { GuildId = 350208864525746186, CommandPrefix = '.' };
 			settings.Handlers.Add(new PlayMusicCommandHandler());
 			settings.Handlers.Add(new StopMusicCommandHandler());
+			settings.Handlers.Add(new DebugCommandHandler());
+			settings.Handlers.Add(new DebugEmbedMessageHandler());
 			Guilds = new Dictionary<ulong, GuildSettings>();
 			Guilds.Add(350208864525746186, settings);
 			Services = new List<object> {
