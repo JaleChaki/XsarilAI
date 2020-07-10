@@ -1,14 +1,20 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord.Audio;
 using Discord.WebSocket;
+using Newtonsoft.Json;
 using XLogger;
 using XLogger.Configuration;
 using XLogger.Formatters;
 using XsarilAI.Configuration.Reader;
+using XsarilAI.Guilds;
+using XsarilAI.Handlers;
+using XsarilAI.Services;
 
 namespace XsarilAI {
 	class Program {
@@ -28,21 +34,31 @@ namespace XsarilAI {
 		}
 
 		static void Main(string[] args) {
+			
+			const string configPath = "AppConfig.json";
+			IConfigurationReaderProvider readerProvider = new DefaultConfigurationReaderProvider();
+			XsarilAI.Configuration.IConfiguration config = readerProvider.GetReader(configPath).Read(configPath);
+
+
+
 			LoggerConfiguration.ConfigureLoggerConfiguration(builder =>
 				builder.UseConsoleLogging()
 					.AddFormatter(new SocketMessageFormatter())
 					.AddFormatter(new LogMessageFormatter())
-					.UseLogLevel(LogLevel.Debug)
+					.UseLogLevel(Enum.Parse<LogLevel>(config["log.level"]))
 			);
-			IConfigurationReaderProvider readerProvider = new DefaultConfigurationReaderProvider();
-			DiscordBot bot = new DiscordBot(readerProvider.GetReader("AppConfig.json").Read("AppConfig.json"));
-			/*bot.Handlers.Add(new LoggerHandler());
-			bot.Handlers.Add(new MessageReceiveHandler(bot));
-			bot.Handlers.Add(new EmojiAddHandler(bot, "welcome", "l_hand", "CS:GOсть"));
-			bot.Handlers.Add(new SubscribeCommandHandler(bot, ".sub мемы", "voice-flood", "memaseks"));
-			bot.Handlers.Add(new UnsubscribeCommandHandler(bot, ".unsub мемы", "voice-flood", "memaseks"));
-			bot.Handlers.Add(new PlayMusicHandler(bot, ".play"));*/
-			bot.Run().GetAwaiter().GetResult();
+
+			IGuildSettingsReader reader = new JsonGuildSettingsReader(new DefaultHandlerFactory());
+			ICollection<GuildSettings> guilds = new List<GuildSettings>();
+			string[] settingsFiles = JsonConvert.DeserializeObject<string[]>(File.ReadAllText(config["guilds.settings"]));
+			foreach (string file in settingsFiles) {
+				guilds.Add(reader.Read(file));
+			}
+
+
+			DiscordBot bot = new DiscordBot(config, guilds, new object[] { new DefaultMusicPlayer(config), new DefaultMusicSearchService(config) });
+
+			bot.Run().RunSync();
 		}
 	}
 }

@@ -1,0 +1,10 @@
+{
+  "GuildId": "350208864525746186",
+  "CommandPrefix": ".",
+  "WelcomeChannelId": "717776293566873735",
+  "RoleGainChannelId": "717776293566873735",
+  "Services": [
+    "music-service",
+    "debug-utils"
+  ]
+}

@@ -3,7 +3,7 @@
 namespace XsarilAI.Services {
 	interface IMusicSearchService {
 
-		IEnumerable<string> GetOrCreateMusicFiles(string searchStr);
+		IEnumerable<string> GetOrCreateMusicSources(string searchStr);
 
 	}
 }

@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using XLogger;
@@ -8,7 +9,6 @@ using XsarilAI.Configuration;
 using XsarilAI.Events;
 using XsarilAI.Guilds;
 using XsarilAI.Handlers;
-using XsarilAI.Services;
 
 namespace XsarilAI {
 	public class DiscordBot : IExecutionEnvironment {
@@ -19,28 +19,19 @@ namespace XsarilAI {
 		private object Sync = new object();
 #pragma warning restore IDE0044
 
-		private IDictionary<ulong, GuildSettings> Guilds;
+		private readonly IDictionary<ulong, GuildSettings> Guilds;
 
-		private ICollection<object> Services;
+		private readonly ICollection<object> Services;
 
-		private ICollection<IEvent> CachedEvents;
+		private readonly ICollection<IEvent> CachedEvents;
 
 		private readonly IConfiguration Configuration;
 
-		public DiscordBot(IConfiguration configuration) {
+		public DiscordBot(IConfiguration configuration, IEnumerable<GuildSettings> guilds, IEnumerable<object> services) {
 			this.Configuration = configuration;
 			Client = new DiscordSocketClient();
-			GuildSettings settings = new GuildSettings() { GuildId = 350208864525746186, CommandPrefix = '.' };
-			settings.Handlers.Add(new PlayMusicCommandHandler());
-			settings.Handlers.Add(new StopMusicCommandHandler());
-			settings.Handlers.Add(new DebugCommandHandler());
-			settings.Handlers.Add(new DebugEmbedMessageHandler());
-			Guilds = new Dictionary<ulong, GuildSettings>();
-			Guilds.Add(350208864525746186, settings);
-			Services = new List<object> {
-				new DefaultMusicPlayer(configuration),
-				new DefaultMusicSearchService(configuration)
-			};
+			Guilds = guilds.ToDictionary(x => x.GuildId, y => y);
+			Services = services.ToList();
 			CachedEvents = new List<IEvent>();
 		}
 

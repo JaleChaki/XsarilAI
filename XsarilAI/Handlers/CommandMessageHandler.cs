@@ -14,7 +14,7 @@ namespace XsarilAI.Handlers {
 			GuildSettings guildSettings = environment.GetGuildSettings(e.GuildId);
 			string fullCommand = guildSettings.CommandPrefix + CommandName;
 			string messageText = e.Text;
-			if (messageText.StartsWith(fullCommand)) {
+			if (messageText == fullCommand || messageText.StartsWith(fullCommand + " ")) {
 				int cutLength = fullCommand.Length;
 				if (messageText.Length > cutLength && messageText[cutLength + 1] == ' ') {
 					++cutLength;

@@ -1,7 +1,9 @@
 {
-  "ffmpeg.path": "ffmpeg/bin/ffmpeg.exe",
-  "ffmpeg.args": "-hide_banner -loglevel panic -i \"{0}\" -ac 2 -f s16le -ar 48000 pipe:1",
-  "music.dir": "Music/",
+  "bot.looptime": 1500,
   "bot.token": "NjkzMTI3NDIwMTE0NjMyNzU0.Xn-LMg.7aau-CiWgjjOYffi9kmuPbmfMKY",
-  "bot.looptime": 1500
+  "ffmpeg.args": "-hide_banner -loglevel panic -i \"{0}\" -ac 2 -f s16le -ar 48000 pipe:1",
+  "ffmpeg.path": "ffmpeg/bin/ffmpeg.exe",
+  "music.dir": "C:\\Alexandr\\Music",
+  "guilds.settings": "Data/Guilds.json",
+  "log.level": "Debug"
 }

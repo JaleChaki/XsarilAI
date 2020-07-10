@@ -29,11 +29,11 @@ namespace XsarilAI.Services {
 			return Tokens[guildId];
 		}
 
-		public void Play(IAudioChannel channel, IMessageChannel outputChannel, ulong guildId, string filename) {
+		public void Play(IAudioChannel channel, IMessageChannel outputChannel, ulong guildId, string musicSource) {
 
 			CancellationTokenSource src = GetOrCreateCancellationTokenSource(guildId);
 			TaskFactory factory = new TaskFactory(src.Token);
-			factory.StartNew(() => PlayMusicAsync(channel, outputChannel, filename, src.Token));
+			factory.StartNew(() => PlayMusicAsync(channel, outputChannel, musicSource, src.Token));
 			
 
 		}
@@ -66,16 +66,13 @@ namespace XsarilAI.Services {
 				using (var output = ffmpeg.StandardOutput.BaseStream)
 				using (var discord = audioClient.CreatePCMStream(AudioApplication.Mixed)) {
 					try {
-						EmbedBuilder builder = new EmbedBuilder();
-						builder.AddField("Now playing", Path.GetFileNameWithoutExtension(filename));
-						builder.WithColor(Color.Green);
-						await outputChannel.SendMessageAsync(null, false, builder.Build());
 						await output.CopyToAsync(discord, cancellationToken);
 					}
 					catch (Exception e) {
 						Logger.Error(e);
 					}
 					finally {
+						ffmpeg?.Kill();
 						await discord.FlushAsync();
 						await channel.DisconnectAsync();
 					}

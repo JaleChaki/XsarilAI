@@ -2,7 +2,6 @@
 using System.IO;
 using System.Linq;
 using System.Text;
-using XLogger;
 using XsarilAI.Configuration;
 
 namespace XsarilAI.Services {
@@ -44,7 +43,7 @@ namespace XsarilAI.Services {
 			this.Configuration = configuration;
 		}
 
-		public virtual IEnumerable<string> GetOrCreateMusicFiles(string searchStr) {
+		public virtual IEnumerable<string> GetOrCreateMusicSources(string searchStr) {
 			string[] searchTags = searchStr.Split(' ').Select(x => RemoveSpecificSymbols(x)).Where(x => !string.IsNullOrWhiteSpace(x)).ToArray();
 			List<MusicFile> files = Directory.GetFiles(Configuration["music.dir"]).Select(x => CreateMusicFile(x, searchTags)).ToList();
 			files.Sort((a, b) => a.RelevantIndex.CompareTo(b.RelevantIndex));
