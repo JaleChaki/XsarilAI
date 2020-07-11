@@ -5,5 +5,5 @@
   "ffmpeg.path": "ffmpeg/bin/ffmpeg.exe",
   "music.dir": "C:\\Alexandr\\Music",
   "guilds.settings": "Data/Guilds.json",
-  "log.level": "Debug"
+  "log.level": "Info"
 }

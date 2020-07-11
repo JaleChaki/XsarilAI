@@ -38,6 +38,7 @@ namespace XsarilAI {
 		public async Task Run() {
 			await Client.LoginAsync(TokenType.Bot, Configuration["bot.token"]);
 			await Client.StartAsync();
+			Client.Log += OnClientLog;
 			Client.MessageReceived += OnMessageReceive;
 			Client.ReactionAdded += OnReactionAdd;
 			int loopTime = int.Parse(Configuration["bot.looptime"]);
@@ -45,6 +46,15 @@ namespace XsarilAI {
 				HandleEvents();
 				Thread.Sleep(loopTime);
 			}
+		}
+
+		private Task OnClientLog(Discord.LogMessage log) {
+			if (log.Exception != null) {
+				Logger.Error(log);
+			} else {
+				Logger.Info(log);
+			}
+			return Task.CompletedTask;
 		}
 
 		private void HandleEvents() {
