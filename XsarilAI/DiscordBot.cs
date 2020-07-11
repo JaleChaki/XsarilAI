@@ -36,11 +36,11 @@ namespace XsarilAI {
 		}
 
 		public async Task Run() {
-			await Client.LoginAsync(TokenType.Bot, Configuration["bot.token"]);
+			await Client.LoginAsync(TokenType.Bot, Configuration["bot.token"]);			
 			await Client.StartAsync();
 			Client.Log += OnClientLog;
 			Client.MessageReceived += OnMessageReceive;
-			Client.ReactionAdded += OnReactionAdd;
+			//Client.ReactionAdded += OnReactionAdd;
 			int loopTime = int.Parse(Configuration["bot.looptime"]);
 			while (true) {
 				HandleEvents();

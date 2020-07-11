@@ -5,6 +5,7 @@
   "RoleGainChannelId": "717776293566873735",
   "Services": [
     "music-service",
-    "debug-utils"
+    "debug-utils",
+    "rolegain>Data/JSRoleGainOptions.json"
   ]
 }
